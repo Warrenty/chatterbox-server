@@ -5,6 +5,7 @@
  * this file and include it in basic-server.js so that it actually works.
  * *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html. */
 
+var dataStorage = {results:[]};
 var handleRequest = function(request, response) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
@@ -14,7 +15,23 @@ var handleRequest = function(request, response) {
 
   console.log("Serving request type " + request.method + " for url " + request.url);
 
-  var statusCode = 200;
+  var statusCode;
+  // statusCode = request.url === "/classes/messages"? statusCode: 404;
+
+  if (request.method === 'GET'){
+    if (request.url === "/classes/messages" || request.url === "/classes/room1") {
+      statusCode = 200;
+    }else {
+      statusCode = 404;
+    }
+  }
+
+  if (request.method === 'POST') {
+    statusCode = 201;
+    request.on('data',function(item){
+      dataStorage.results.push(JSON.parse(item));
+    })
+  }
 
   /* Without this line, this server wouldn't work. See the note
    * below about CORS. */
@@ -29,7 +46,8 @@ var handleRequest = function(request, response) {
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  response.end("Hello, World!");
+
+  response.end(JSON.stringify(dataStorage));
 };
 
 /* These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -43,3 +61,5 @@ var defaultCorsHeaders = {
   "access-control-allow-headers": "content-type, accept",
   "access-control-max-age": 10 // Seconds.
 };
+
+module.exports = handleRequest
